@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess.com Profile Stats - pabloinchausti</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .chart-container h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            height: 300px;
+            gap: 10px;
+            padding: 20px 0;
+        }
+
+        .bar {
+            flex: 1;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 5px 5px 0 0;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .bar:hover {
+            opacity: 0.8;
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+        }
+
+        .bar-value {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 18px;
+        }
+
+        .error {
+            background: #ff6b6b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .time-chart {
+            display: grid;
+            grid-template-columns: repeat(24, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .time-bar {
+            background: #e0e0e0;
+            height: 150px;
+            border-radius: 3px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .time-bar-fill {
+            width: 100%;
+            background: linear-gradient(to top, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+
+        .time-bar:hover .time-bar-fill {
+            opacity: 0.8;
+        }
+
+        .time-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #666;
+        }
+
+        .time-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            font-weight: bold;
+            color: #333;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>♟️ Chess.com Profile Stats</h1>
+            <p>Analyzing profile: <strong>pabloinchausti</strong></p>
+            <div style="margin-top: 15px; display: flex; gap: 15px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <label for="monthFilter" style="color: #666; margin-right: 10px;">Filter by month:</label>
+                    <select id="monthFilter" style="padding: 8px 15px; border-radius: 5px; border: 2px solid #667eea; font-size: 14px; cursor: pointer;">
+                        <option value="all">All Time (Last 12 Months)</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="dateFilter" style="color: #666; margin-right: 10px;">Or pick a specific day:</label>
+                    <button id="prevDayBtn" style="padding: 8px 15px; width: auto; background: #3498db; margin-right: 5px;" onclick="navigateDay(-1)">◀ Prev</button>
+                    <input type="date" id="dateFilter" style="padding: 8px 15px; border-radius: 5px; border: 2px solid #667eea; font-size: 14px; cursor: pointer;">
+                    <button id="nextDayBtn" style="padding: 8px 15px; width: auto; background: #3498db; margin-left: 5px; margin-right: 5px;" onclick="navigateDay(1)">Next ▶</button>
+                    <button id="clearDateBtn" style="padding: 8px 15px; margin-left: 5px; width: auto; background: #e74c3c;" onclick="clearDateFilter()">Clear</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            Loading your chess stats... ♟️
+        </div>
+
+        <div id="error" style="display: none;"></div>
+
+        <div id="content" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Games</h3>
+                    <div class="stat-value" id="totalGames">-</div>
+                    <div class="stat-label">All time</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Estimated Hours</h3>
+                    <div class="stat-value" id="totalHours">-</div>
+                    <div class="stat-label">Time spent playing</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Games This Month</h3>
+                    <div class="stat-value" id="monthGames">-</div>
+                    <div class="stat-label" id="monthLabel">-</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Peak Hour</h3>
+                    <div class="stat-value" id="peakHour">-</div>
+                    <div class="stat-label">Most active time</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Weekday Games</h3>
+                    <div class="stat-value" id="weekdayGames">-</div>
+                    <div class="stat-label">Mon-Fri</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Weekend Games</h3>
+                    <div class="stat-value" id="weekendGames">-</div>
+                    <div class="stat-label">Sat-Sun</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Working Days 🇦🇷</h3>
+                    <div class="stat-value" id="workingDayGames">-</div>
+                    <div class="stat-label">Días laborables</div>
+                </div>
+
+                <div class="stat-card">
+                    <h3>Non-Working Days 🇦🇷</h3>
+                    <div class="stat-value" id="nonWorkingDayGames">-</div>
+                    <div class="stat-label">Fines de semana + feriados</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <h3>📅 Weekday vs Weekend</h3>
+                <div class="bar-chart" id="weekdayChart"></div>
+            </div>
+
+            <div class="chart-container">
+                <h3>📅 Games per Month (Last 12 Months)</h3>
+                <div class="bar-chart" id="monthChart"></div>
+            </div>
+
+            <div class="chart-container">
+                <h3>🕐 Games by Hour - Working Days 🇦🇷</h3>
+                <p style="color: #666; font-size: 14px; margin-top: -10px;">Lunes a viernes (sin feriados)</p>
+                <div class="time-chart" id="hourChartWorking"></div>
+            </div>
+
+            <div class="chart-container">
+                <h3>🕐 Games by Hour - Weekends</h3>
+                <p style="color: #666; font-size: 14px; margin-top: -10px;">Sábados y domingos</p>
+                <div class="time-chart" id="hourChartWeekend"></div>
+            </div>
+
+            <div class="chart-container">
+                <h3>🕐 Games by Hour - Holidays 🇦🇷</h3>
+                <p style="color: #666; font-size: 14px; margin-top: -10px;">Feriados argentinos</p>
+                <div class="time-chart" id="hourChartHolidays"></div>
+            </div>
+
+            <div class="chart-container">
+                <h3>🇦🇷 Argentina Holidays Considered</h3>
+                <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Feriados argentinos incluidos en el análisis</p>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table id="holidaysTable" style="width: 100%; border-collapse: collapse;">
+                        <thead style="position: sticky; top: 0; background: white;">
+                            <tr style="border-bottom: 2px solid #667eea;">
+                                <th style="padding: 10px; text-align: left; color: #667eea;">Date</th>
+                                <th style="padding: 10px; text-align: left; color: #667eea;">Holiday Name</th>
+                                <th style="padding: 10px; text-align: center; color: #667eea;">Games Played</th>
+                            </tr>
+                        </thead>
+                        <tbody id="holidaysTableBody">
+                            <!-- Will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const username = 'pabloinchausti';
+        let allGamesData = []; // Store all games globally
+        
+        // Argentina non-working days (feriados) 2023-2024
+        const argentinaHolidays = [
+            // 2023
+            { date: '2023-01-01', name: 'Año Nuevo' },
+            { date: '2023-02-20', name: 'Carnaval' },
+            { date: '2023-02-21', name: 'Carnaval' },
+            { date: '2023-03-24', name: 'Día Nacional de la Memoria' },
+            { date: '2023-04-02', name: 'Día del Veterano y de los Caídos en la Guerra de Malvinas' },
+            { date: '2023-04-06', name: 'Jueves Santo' },
+            { date: '2023-04-07', name: 'Viernes Santo' },
+            { date: '2023-05-01', name: 'Día del Trabajador' },
+            { date: '2023-05-25', name: 'Día de la Revolución de Mayo' },
+            { date: '2023-06-17', name: 'Paso a la Inmortalidad del Gral. Güemes' },
+            { date: '2023-06-20', name: 'Paso a la Inmortalidad del Gral. Belgrano' },
+            { date: '2023-07-09', name: 'Día de la Independencia' },
+            { date: '2023-08-21', name: 'Paso a la Inmortalidad del Gral. San Martín' },
+            { date: '2023-10-13', name: 'Día del Respeto a la Diversidad Cultural (puente)' },
+            { date: '2023-10-16', name: 'Día del Respeto a la Diversidad Cultural' },
+            { date: '2023-11-20', name: 'Día de la Soberanía Nacional' },
+            { date: '2023-12-08', name: 'Inmaculada Concepción de María' },
+            { date: '2023-12-25', name: 'Navidad' },
+            // 2024
+            { date: '2024-01-01', name: 'Año Nuevo' },
+            { date: '2024-02-12', name: 'Carnaval' },
+            { date: '2024-02-13', name: 'Carnaval' },
+            { date: '2024-03-24', name: 'Día Nacional de la Memoria' },
+            { date: '2024-03-28', name: 'Jueves Santo' },
+            { date: '2024-03-29', name: 'Viernes Santo' },
+            { date: '2024-04-02', name: 'Día del Veterano y de los Caídos en la Guerra de Malvinas' },
+            { date: '2024-05-01', name: 'Día del Trabajador' },
+            { date: '2024-05-25', name: 'Día de la Revolución de Mayo' },
+            { date: '2024-06-17', name: 'Paso a la Inmortalidad del Gral. Güemes' },
+            { date: '2024-06-20', name: 'Paso a la Inmortalidad del Gral. Belgrano' },
+            { date: '2024-07-09', name: 'Día de la Independencia' },
+            { date: '2024-08-19', name: 'Paso a la Inmortalidad del Gral. San Martín (puente)' },
+            { date: '2024-10-11', name: 'Día del Respeto a la Diversidad Cultural (puente)' },
+            { date: '2024-11-18', name: 'Día de la Soberanía Nacional (puente)' },
+            { date: '2024-12-08', name: 'Inmaculada Concepción de María' },
+            { date: '2024-12-25', name: 'Navidad' },
+            // 2025
+            { date: '2025-01-01', name: 'Año Nuevo' },
+            { date: '2025-03-03', name: 'Carnaval' },
+            { date: '2025-03-04', name: 'Carnaval' },
+            { date: '2025-03-24', name: 'Día Nacional de la Memoria' },
+            { date: '2025-04-02', name: 'Día del Veterano y de los Caídos en la Guerra de Malvinas' },
+            { date: '2025-04-17', name: 'Jueves Santo' },
+            { date: '2025-04-18', name: 'Viernes Santo' },
+            { date: '2025-05-01', name: 'Día del Trabajador' },
+            { date: '2025-05-25', name: 'Día de la Revolución de Mayo' },
+            { date: '2025-06-16', name: 'Paso a la Inmortalidad del Gral. Güemes (puente)' },
+            { date: '2025-06-20', name: 'Paso a la Inmortalidad del Gral. Belgrano' },
+            { date: '2025-07-09', name: 'Día de la Independencia' },
+            { date: '2025-08-18', name: 'Paso a la Inmortalidad del Gral. San Martín (puente)' },
+            { date: '2025-10-13', name: 'Día del Respeto a la Diversidad Cultural (puente)' },
+            { date: '2025-11-24', name: 'Día de la Soberanía Nacional' },
+            { date: '2025-12-08', name: 'Inmaculada Concepción de María' },
+            { date: '2025-12-25', name: 'Navidad' },
+        ];
+        
+        function isArgentinaHoliday(date) {
+            const dateStr = date.toISOString().split('T')[0];
+            return argentinaHolidays.some(h => h.date === dateStr);
+        }
+        
+        function getHolidayName(date) {
+            const dateStr = date.toISOString().split('T')[0];
+            const holiday = argentinaHolidays.find(h => h.date === dateStr);
+            return holiday ? holiday.name : null;
+        }
+        
+        function isWorkingDay(date) {
+            const dayOfWeek = date.getDay();
+            // Not weekend and not holiday
+            return dayOfWeek !== 0 && dayOfWeek !== 6 && !isArgentinaHoliday(date);
+        }
+        
+        async function fetchGames() {
+            try {
+                const archives = await fetch(`https://api.chess.com/pub/player/${username}/games/archives`)
+                    .then(r => r.json());
+                
+                const allGames = [];
+                
+                // Fetch last 12 months of games
+                const recentArchives = archives.archives.slice(-12);
+                
+                for (const archiveUrl of recentArchives) {
+                    const games = await fetch(archiveUrl).then(r => r.json());
+                    allGames.push(...games.games);
+                }
+                
+                return allGames;
+            } catch (error) {
+                console.error('Error fetching games:', error);
+                throw error;
+            }
+        }
+
+        function analyzeGames(games, filterMonth = 'all', filterDate = null) {
+            // Filter games by month or specific date
+            let filteredGames = games;
+            if (filterDate) {
+                // Filter by specific date
+                filteredGames = games.filter(game => {
+                    const date = new Date(game.end_time * 1000);
+                    const dateStr = date.toISOString().split('T')[0];
+                    return dateStr === filterDate;
+                });
+            } else if (filterMonth !== 'all') {
+                // Filter by month
+                filteredGames = games.filter(game => {
+                    const date = new Date(game.end_time * 1000);
+                    const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    return monthKey === filterMonth;
+                });
+            }
+
+            const stats = {
+                totalGames: filteredGames.length,
+                monthlyGames: {},
+                hourlyGames: Array(24).fill(0),
+                hourlyGamesWorking: Array(24).fill(0),
+                hourlyGamesWeekend: Array(24).fill(0),
+                hourlyGamesHolidays: Array(24).fill(0),
+                estimatedMinutes: 0,
+                weekdayGames: 0,
+                weekendGames: 0,
+                workingDayGames: 0,
+                nonWorkingDayGames: 0,
+                dayOfWeekGames: Array(7).fill(0) // 0=Sunday, 6=Saturday
+            };
+
+            filteredGames.forEach(game => {
+                // Analyze by month
+                const date = new Date(game.end_time * 1000);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                stats.monthlyGames[monthKey] = (stats.monthlyGames[monthKey] || 0) + 1;
+
+                // Analyze by hour
+                const hour = date.getHours();
+                const dayOfWeek = date.getDay(); // 0=Sunday, 6=Saturday
+                const isHoliday = isArgentinaHoliday(date);
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                
+                stats.hourlyGames[hour]++;
+                
+                // Split by working days, weekends, and holidays
+                if (isHoliday) {
+                    stats.hourlyGamesHolidays[hour]++;
+                } else if (isWeekend) {
+                    stats.hourlyGamesWeekend[hour]++;
+                } else {
+                    stats.hourlyGamesWorking[hour]++;
+                }
+
+                // Analyze by day of week
+                stats.dayOfWeekGames[dayOfWeek]++;
+                
+                // Weekend vs Weekday
+                if (isWeekend) {
+                    stats.weekendGames++;
+                } else {
+                    stats.weekdayGames++;
+                }
+                
+                // Working day vs Non-working day (Argentina)
+                if (isWorkingDay(date)) {
+                    stats.workingDayGames++;
+                } else {
+                    stats.nonWorkingDayGames++;
+                }
+
+                // Estimate time (average 10 minutes per game for rapid/blitz)
+                const timeClass = game.time_class;
+                if (timeClass === 'bullet') {
+                    stats.estimatedMinutes += 3;
+                } else if (timeClass === 'blitz') {
+                    stats.estimatedMinutes += 5;
+                } else if (timeClass === 'rapid') {
+                    stats.estimatedMinutes += 15;
+                } else {
+                    stats.estimatedMinutes += 30; // daily/correspondence
+                }
+            });
+
+            return stats;
+        }
+
+        function displayStats(stats) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+
+            // Clear existing charts
+            document.getElementById('weekdayChart').innerHTML = '';
+            document.getElementById('monthChart').innerHTML = '';
+            document.getElementById('hourChartWorking').innerHTML = '';
+            document.getElementById('hourChartWeekend').innerHTML = '';
+            document.getElementById('hourChartHolidays').innerHTML = '';
+
+            // Total games
+            document.getElementById('totalGames').textContent = stats.totalGames.toLocaleString();
+
+            // Estimated hours
+            const hours = Math.round(stats.estimatedMinutes / 60);
+            document.getElementById('totalHours').textContent = hours.toLocaleString();
+
+            // Current month games
+            const now = new Date();
+            const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            const monthGames = stats.monthlyGames[currentMonth] || stats.totalGames;
+            document.getElementById('monthGames').textContent = monthGames;
+            
+            const selectedMonth = document.getElementById('monthFilter').value;
+            const selectedDate = document.getElementById('dateFilter').value;
+            
+            if (selectedDate) {
+                const filterDate = new Date(selectedDate);
+                document.getElementById('monthLabel').textContent = filterDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            } else if (selectedMonth === 'all') {
+                document.getElementById('monthLabel').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            } else {
+                const filterDate = new Date(selectedMonth + '-01');
+                document.getElementById('monthLabel').textContent = filterDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            }
+
+            // Peak hour
+            const peakHourIndex = stats.hourlyGames.indexOf(Math.max(...stats.hourlyGames));
+            document.getElementById('peakHour').textContent = peakHourIndex >= 0 ? `${peakHourIndex}:00` : '-';
+
+            // Weekday vs Weekend
+            document.getElementById('weekdayGames').textContent = stats.weekdayGames.toLocaleString();
+            document.getElementById('weekendGames').textContent = stats.weekendGames.toLocaleString();
+            
+            // Working day vs Non-working day (Argentina)
+            document.getElementById('workingDayGames').textContent = stats.workingDayGames.toLocaleString();
+            document.getElementById('nonWorkingDayGames').textContent = stats.nonWorkingDayGames.toLocaleString();
+
+            // Weekday chart
+            renderWeekdayChart(stats.dayOfWeekGames);
+
+            // Monthly chart (only show if "all" is selected and no date filter)
+            if (selectedMonth === 'all' && !selectedDate) {
+                document.getElementById('monthChart').parentElement.style.display = 'block';
+                renderMonthlyChart(stats.monthlyGames);
+            } else {
+                document.getElementById('monthChart').parentElement.style.display = 'none';
+            }
+
+            // Hourly charts - separate for working days, weekends, and holidays
+            renderHourlyChart(stats.hourlyGamesWorking, 'hourChartWorking', 'working');
+            renderHourlyChart(stats.hourlyGamesWeekend, 'hourChartWeekend', 'weekend');
+            renderHourlyChart(stats.hourlyGamesHolidays, 'hourChartHolidays', 'holiday');
+            
+            // Populate holidays table
+            populateHolidaysTable();
+        }
+
+        function populateHolidaysTable() {
+            const tbody = document.getElementById('holidaysTableBody');
+            tbody.innerHTML = '';
+            
+            // Count games per holiday
+            const holidayGames = {};
+            allGamesData.forEach(game => {
+                const date = new Date(game.end_time * 1000);
+                if (isArgentinaHoliday(date)) {
+                    const dateStr = date.toISOString().split('T')[0];
+                    holidayGames[dateStr] = (holidayGames[dateStr] || 0) + 1;
+                }
+            });
+            
+            // Sort holidays by date (most recent first)
+            const sortedHolidays = [...argentinaHolidays].sort((a, b) => b.date.localeCompare(a.date));
+            
+            sortedHolidays.forEach(holiday => {
+                const games = holidayGames[holiday.date] || 0;
+                const date = new Date(holiday.date);
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #eee';
+                
+                // Highlight if games were played
+                if (games > 0) {
+                    row.style.background = '#fff9e6';
+                }
+                
+                row.innerHTML = `
+                    <td style="padding: 10px;">${date.toLocaleDateString('es-AR', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                    <td style="padding: 10px;">${holiday.name}</td>
+                    <td style="padding: 10px; text-align: center; font-weight: bold; color: ${games > 0 ? '#667eea' : '#ccc'};">${games}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderWeekdayChart(dayOfWeekGames) {
+            const chartEl = document.getElementById('weekdayChart');
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const maxGames = Math.max(...dayOfWeekGames);
+
+            dayOfWeekGames.forEach((games, dayIndex) => {
+                const height = (games / maxGames) * 100;
+                
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${height}%`;
+                
+                // Highlight weekends
+                if (dayIndex === 0 || dayIndex === 6) {
+                    bar.style.background = 'linear-gradient(to top, #f093fb, #f5576c)';
+                }
+                
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = dayNames[dayIndex];
+                
+                const value = document.createElement('div');
+                value.className = 'bar-value';
+                value.textContent = games;
+                
+                bar.appendChild(label);
+                bar.appendChild(value);
+                chartEl.appendChild(bar);
+            });
+        }
+
+        function renderMonthlyChart(monthlyGames) {
+            const chartEl = document.getElementById('monthChart');
+            const months = Object.keys(monthlyGames).sort().slice(-12);
+            const maxGames = Math.max(...Object.values(monthlyGames));
+
+            months.forEach(month => {
+                const games = monthlyGames[month];
+                const height = (games / maxGames) * 100;
+                
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${height}%`;
+                
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                const date = new Date(month + '-01');
+                label.textContent = date.toLocaleDateString('en-US', { month: 'short' });
+                
+                const value = document.createElement('div');
+                value.className = 'bar-value';
+                value.textContent = games;
+                
+                bar.appendChild(label);
+                bar.appendChild(value);
+                chartEl.appendChild(bar);
+            });
+        }
+
+        function renderHourlyChart(hourlyGames, elementId, type = 'working') {
+            const chartEl = document.getElementById(elementId);
+            const maxGames = Math.max(...hourlyGames);
+
+            hourlyGames.forEach((games, hour) => {
+                const height = maxGames > 0 ? (games / maxGames) * 100 : 0;
+                
+                const container = document.createElement('div');
+                container.className = 'time-bar';
+                
+                const fill = document.createElement('div');
+                fill.className = 'time-bar-fill';
+                fill.style.height = `${height}%`;
+                
+                // Different colors for each type
+                if (type === 'weekend') {
+                    fill.style.background = 'linear-gradient(to top, #f093fb, #f5576c)';
+                } else if (type === 'holiday') {
+                    fill.style.background = 'linear-gradient(to top, #ffeaa7, #fdcb6e)';
+                }
+                // working days keep the default purple gradient
+                
+                const label = document.createElement('div');
+                label.className = 'time-label';
+                label.textContent = `${hour}h`;
+                
+                if (games > 0) {
+                    const value = document.createElement('div');
+                    value.className = 'time-value';
+                    value.textContent = games;
+                    container.appendChild(value);
+                }
+                
+                container.appendChild(fill);
+                container.appendChild(label);
+                chartEl.appendChild(container);
+            });
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const errorEl = document.getElementById('error');
+            errorEl.className = 'error';
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
+        }
+
+        function populateMonthFilter(games) {
+            const monthFilter = document.getElementById('monthFilter');
+            const months = new Set();
+            
+            games.forEach(game => {
+                const date = new Date(game.end_time * 1000);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                months.add(monthKey);
+            });
+            
+            const sortedMonths = Array.from(months).sort().reverse();
+            
+            sortedMonths.forEach(month => {
+                const option = document.createElement('option');
+                option.value = month;
+                const date = new Date(month + '-01');
+                option.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+                monthFilter.appendChild(option);
+            });
+            
+            // Add event listener for filter changes
+            monthFilter.addEventListener('change', function() {
+                document.getElementById('dateFilter').value = ''; // Clear date filter
+                const selectedMonth = this.value;
+                const stats = analyzeGames(allGamesData, selectedMonth, null);
+                displayStats(stats);
+            });
+        }
+        
+        function clearDateFilter() {
+            document.getElementById('dateFilter').value = '';
+            const selectedMonth = document.getElementById('monthFilter').value;
+            const stats = analyzeGames(allGamesData, selectedMonth, null);
+            displayStats(stats);
+        }
+        
+        function navigateDay(direction) {
+            const dateInput = document.getElementById('dateFilter');
+            let currentDate;
+            
+            if (dateInput.value) {
+                // If there's a date selected, navigate from it
+                currentDate = new Date(dateInput.value + 'T00:00:00');
+            } else {
+                // If no date selected, start from today
+                currentDate = new Date();
+                currentDate.setHours(0, 0, 0, 0);
+            }
+            
+            // Add or subtract days
+            currentDate.setDate(currentDate.getDate() + direction);
+            
+            // Format date as YYYY-MM-DD
+            const year = currentDate.getFullYear();
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(currentDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            // Update the date input
+            dateInput.value = dateStr;
+            
+            // Reset month filter and update stats
+            document.getElementById('monthFilter').value = 'all';
+            const stats = analyzeGames(allGamesData, 'all', dateStr);
+            displayStats(stats);
+        }
+
+        // Load data
+        (async () => {
+            try {
+                const games = await fetchGames();
+                allGamesData = games; // Store globally
+                populateMonthFilter(games);
+                
+                // Add date picker event listener
+                document.getElementById('dateFilter').addEventListener('change', function() {
+                    const selectedDate = this.value;
+                    if (selectedDate) {
+                        document.getElementById('monthFilter').value = 'all'; // Reset month filter
+                        const stats = analyzeGames(allGamesData, 'all', selectedDate);
+                        displayStats(stats);
+                    }
+                });
+                
+                const stats = analyzeGames(games, 'all', null);
+                displayStats(stats);
+            } catch (error) {
+                showError('Failed to load chess stats. Please check the username and try again.');
+                console.error(error);
+            }
+        })();
+    </script>
+</body>
+</html>

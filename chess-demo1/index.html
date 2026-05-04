@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Game with Stockfish</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #2c3e50;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+        }
+        .board-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(8, 60px);
+            grid-template-rows: repeat(8, 60px);
+            border: 3px solid #34495e;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .square {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .square.light {
+            background: #f0d9b5;
+        }
+        .square.dark {
+            background: #b58863;
+        }
+        .square.selected {
+            background: #7fc97f !important;
+        }
+        .square.valid-move {
+            background: #ffeb3b !important;
+        }
+        .sidebar {
+            background: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            width: 250px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        .move-history {
+            max-height: 400px;
+            overflow-y: auto;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .move {
+            padding: 5px;
+            margin: 2px 0;
+            background: #ecf0f1;
+            border-radius: 3px;
+        }
+        .status {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #3498db;
+            color: white;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .promotion-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .promotion-modal.active {
+            display: flex;
+        }
+        .promotion-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .promotion-pieces {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .promotion-piece {
+            font-size: 60px;
+            cursor: pointer;
+            padding: 10px;
+            border: 2px solid transparent;
+            border-radius: 8px;
+        }
+        .promotion-piece:hover {
+            background: #ecf0f1;
+            border-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="board-container">
+            <div class="board" id="board"></div>
+        </div>
+        <div class="sidebar">
+            <h2>Chess vs Stockfish</h2>
+            <div class="status" id="status">White's Turn</div>
+            <button onclick="restartGame()">Restart Game</button>
+            <h3>Move History</h3>
+            <div class="move-history" id="moveHistory"></div>
+        </div>
+    </div>
+
+    <div class="promotion-modal" id="promotionModal">
+        <div class="promotion-content">
+            <h3>Choose promotion piece:</h3>
+            <div class="promotion-pieces">
+                <div class="promotion-piece" onclick="selectPromotion('q')">♕</div>
+                <div class="promotion-piece" onclick="selectPromotion('r')">♖</div>
+                <div class="promotion-piece" onclick="selectPromotion('b')">♗</div>
+                <div class="promotion-piece" onclick="selectPromotion('n')">♘</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script>
+        const pieces = {
+            'K': '♔', 'Q': '♕', 'R': '♖', 'B': '♗', 'N': '♘', 'P': '♙',
+            'k': '♚', 'q': '♛', 'r': '♜', 'b': '♝', 'n': '♞', 'p': '♟'
+        };
+
+        let game = new Chess();
+        let stockfish = null;
+        let selectedSquare = null;
+        let pendingPromotion = null;
+        let engineReady = false;
+
+        function initStockfish() {
+            try {
+                const workerCode = `
+                    importScripts('https://cdnjs.cloudflare.com/ajax/libs/stockfish.js/10.0.2/stockfish.js');
+                    
+                    let engine = STOCKFISH();
+                    
+                    engine.onmessage = function(msg) {
+                        postMessage(msg);
+                    };
+                    
+                    onmessage = function(e) {
+                        engine.postMessage(e.data);
+                    };
+                `;
+                
+                const blob = new Blob([workerCode], { type: 'application/javascript' });
+                const workerUrl = URL.createObjectURL(blob);
+                stockfish = new Worker(workerUrl);
+                
+                stockfish.onmessage = function(event) {
+                    const message = event.data;
+                    console.log('Stockfish:', message);
+                    
+                    if (message === 'uciok') {
+                        engineReady = true;
+                        console.log('Stockfish ready!');
+                    } else if (message.startsWith('bestmove')) {
+                        const move = message.split(' ')[1];
+                        makeEngineMove(move);
+                    }
+                };
+
+                stockfish.postMessage('uci');
+            } catch (e) {
+                console.error('Failed to initialize Stockfish:', e);
+                engineReady = true;
+            }
+        }
+
+        initStockfish();
+
+        function initBoard() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            
+            const board = game.board();
+            
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.dataset.square = String.fromCharCode(97 + col) + (8 - row);
+                    square.onclick = () => handleSquareClick(square.dataset.square);
+                    
+                    const piece = board[row][col];
+                    if (piece) {
+                        square.textContent = pieces[piece.type.toUpperCase()];
+                        if (piece.color === 'b') {
+                            square.textContent = pieces[piece.type.toLowerCase()];
+                        }
+                    }
+                    
+                    boardEl.appendChild(square);
+                }
+            }
+        }
+
+        function handleSquareClick(square) {
+            if (game.game_over() || game.turn() === 'b') return;
+
+            if (selectedSquare) {
+                const move = {
+                    from: selectedSquare,
+                    to: square
+                };
+
+                const piece = game.get(selectedSquare);
+                if (piece && piece.type === 'p' && 
+                    ((piece.color === 'w' && square[1] === '8') || 
+                     (piece.color === 'b' && square[1] === '1'))) {
+                    pendingPromotion = move;
+                    showPromotionModal();
+                    clearHighlights();
+                    return;
+                }
+
+                const result = game.move(move);
+                
+                if (result) {
+                    selectedSquare = null;
+                    clearHighlights();
+                    updateBoard();
+                    checkGameStatus();
+                    
+                    if (!game.game_over()) {
+                        setTimeout(requestEngineMove, 300);
+                    }
+                } else {
+                    clearHighlights();
+                    selectedSquare = null;
+                }
+            } else {
+                const piece = game.get(square);
+                if (piece && piece.color === 'w') {
+                    selectedSquare = square;
+                    highlightSquare(square);
+                    highlightValidMoves(square);
+                }
+            }
+        }
+
+        function showPromotionModal() {
+            document.getElementById('promotionModal').classList.add('active');
+        }
+
+        function selectPromotion(piece) {
+            document.getElementById('promotionModal').classList.remove('active');
+            
+            if (pendingPromotion) {
+                pendingPromotion.promotion = piece;
+                const result = game.move(pendingPromotion);
+                
+                if (result) {
+                    selectedSquare = null;
+                    pendingPromotion = null;
+                    updateBoard();
+                    checkGameStatus();
+                    
+                    if (!game.game_over()) {
+                        setTimeout(requestEngineMove, 300);
+                    }
+                }
+            }
+        }
+
+        function highlightSquare(square) {
+            const squareEl = document.querySelector(`[data-square="${square}"]`);
+            if (squareEl) squareEl.classList.add('selected');
+        }
+
+        function highlightValidMoves(square) {
+            const moves = game.moves({ square: square, verbose: true });
+            moves.forEach(move => {
+                const squareEl = document.querySelector(`[data-square="${move.to}"]`);
+                if (squareEl) squareEl.classList.add('valid-move');
+            });
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.square').forEach(sq => {
+                sq.classList.remove('selected', 'valid-move');
+            });
+        }
+
+        function updateBoard() {
+            initBoard();
+            updateMoveHistory();
+            updateStatus();
+        }
+
+        function requestEngineMove() {
+            if (!engineReady) {
+                setTimeout(requestEngineMove, 100);
+                return;
+            }
+            
+            updateStatus('Black is thinking...');
+            
+            if (stockfish) {
+                stockfish.postMessage('position fen ' + game.fen());
+                stockfish.postMessage('go movetime 400');
+                
+                setTimeout(() => {
+                    if (game.turn() === 'b') {
+                        makeRandomMove();
+                    }
+                }, 2000);
+            } else {
+                makeRandomMove();
+            }
+        }
+
+        function makeEngineMove(move) {
+            const result = game.move(move, { sloppy: true });
+            
+            if (result) {
+                updateBoard();
+                checkGameStatus();
+            } else {
+                makeRandomMove();
+            }
+        }
+
+        function makeRandomMove() {
+            const moves = game.moves();
+            if (moves.length > 0) {
+                const move = moves[Math.floor(Math.random() * moves.length)];
+                game.move(move);
+                updateBoard();
+                checkGameStatus();
+            }
+        }
+
+        function checkGameStatus() {
+            if (game.in_checkmate()) {
+                const winner = game.turn() === 'w' ? 'Black' : 'White';
+                updateStatus(`Checkmate! ${winner} wins!`);
+            } else if (game.in_stalemate()) {
+                updateStatus('Stalemate! Game is a draw.');
+            } else if (game.in_threefold_repetition()) {
+                updateStatus('Draw by threefold repetition.');
+            } else if (game.insufficient_material()) {
+                updateStatus('Draw by insufficient material.');
+            } else if (game.in_draw()) {
+                updateStatus('Game is a draw.');
+            } else if (game.in_check()) {
+                updateStatus(`${game.turn() === 'w' ? 'White' : 'Black'} is in check!`);
+            } else {
+                updateStatus();
+            }
+        }
+
+        function updateStatus(message) {
+            const status = document.getElementById('status');
+            if (message) {
+                status.textContent = message;
+            } else {
+                status.textContent = game.turn() === 'w' ? "White's Turn" : "Black's Turn";
+            }
+        }
+
+        function updateMoveHistory() {
+            const historyEl = document.getElementById('moveHistory');
+            const history = game.history();
+            
+            let html = '';
+            for (let i = 0; i < history.length; i += 2) {
+                const moveNum = Math.floor(i / 2) + 1;
+                const whiteMove = history[i];
+                const blackMove = history[i + 1] || '';
+                html += `<div class="move">${moveNum}. ${whiteMove} ${blackMove}</div>`;
+            }
+            
+            historyEl.innerHTML = html;
+            historyEl.scrollTop = historyEl.scrollHeight;
+        }
+
+        function restartGame() {
+            game.reset();
+            selectedSquare = null;
+            pendingPromotion = null;
+            document.getElementById('promotionModal').classList.remove('active');
+            initBoard();
+            updateStatus();
+            document.getElementById('moveHistory').innerHTML = '';
+        }
+
+        initBoard();
+    </script>
+</body>
+</html>
