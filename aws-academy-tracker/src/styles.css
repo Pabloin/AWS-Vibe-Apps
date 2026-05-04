@@ -1,0 +1,793 @@
+:root {
+  color: #17211b;
+  background: #f5f7f2;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.topbar {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  margin: 0 auto 22px;
+  max-width: 1480px;
+}
+
+.eyebrow {
+  color: #5e6e63;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  letter-spacing: 0;
+  line-height: 1.1;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 4vw, 4rem);
+}
+
+h2 {
+  font-size: 1.75rem;
+}
+
+.topbar-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.upload-button,
+.export-button {
+  align-items: center;
+  border: 1px solid #17422a;
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 9px;
+  min-height: 44px;
+  padding: 0 16px;
+}
+
+.upload-button {
+  background: #1f5134;
+  color: white;
+}
+
+.export-button {
+  background: white;
+  color: #1f5134;
+}
+
+.export-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.upload-button input {
+  display: none;
+}
+
+.error-banner {
+  background: #fff1f0;
+  border: 1px solid #f0a39b;
+  border-radius: 8px;
+  color: #8b2a20;
+  margin: 0 auto 16px;
+  max-width: 1480px;
+  padding: 12px 14px;
+}
+
+.metrics-grid,
+.progress-strip {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metrics-grid {
+  margin: 0 auto 18px;
+  max-width: 1480px;
+}
+
+.controls-row {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto minmax(260px, 1fr) minmax(280px, 360px);
+  margin: 0 auto 18px;
+  max-width: 1480px;
+}
+
+.view-switch {
+  background: #e7ede5;
+  border: 1px solid #d2ddd2;
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+}
+
+.view-switch button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #526156;
+  display: inline-flex;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.view-switch button.active {
+  background: white;
+  color: #17211b;
+  font-weight: 800;
+}
+
+.metric {
+  background: white;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  min-height: 86px;
+  padding: 16px;
+}
+
+.metric span {
+  color: #617067;
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.metric strong {
+  display: block;
+  font-size: 2rem;
+}
+
+.metric-good {
+  border-color: #86b391;
+}
+
+.metric-warning {
+  border-color: #d2ae5c;
+}
+
+.workspace {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  margin: 0 auto;
+  max-width: 1480px;
+}
+
+.workspace.excel-workspace {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 1900px;
+}
+
+.student-panel,
+.detail-panel {
+  background: white;
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.student-panel {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 210px);
+  padding: 14px;
+}
+
+.student-panel.compact-panel {
+  max-height: calc(100vh - 258px);
+}
+
+.search-box {
+  align-items: center;
+  border: 1px solid #cad5cb;
+  border-radius: 8px;
+  display: flex;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.search-box input {
+  border: 0;
+  min-width: 0;
+  outline: 0;
+  width: 100%;
+}
+
+.top-search {
+  background: white;
+}
+
+.segmented {
+  background: #eef3ed;
+  border-radius: 8px;
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 12px 0;
+  padding: 4px;
+}
+
+.top-segmented {
+  margin: 0;
+}
+
+.segmented button {
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: #526156;
+  min-height: 34px;
+}
+
+.segmented button.active {
+  background: white;
+  color: #17211b;
+  font-weight: 800;
+}
+
+.student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.student-row {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  min-height: 62px;
+  padding: 10px;
+  text-align: left;
+}
+
+.student-row.selected {
+  background: #f3f8f1;
+  border-color: #91b89a;
+}
+
+.student-row strong,
+.student-row small {
+  display: block;
+}
+
+.student-row small {
+  color: #617067;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+
+.status-badge,
+.result-badge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.78rem;
+  font-weight: 800;
+  gap: 5px;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0 9px;
+  white-space: nowrap;
+}
+
+.status-badge.large {
+  font-size: 0.95rem;
+  min-height: 38px;
+  padding: 0 13px;
+}
+
+.approved,
+.done {
+  background: #e6f4e9;
+  color: #1b6b37;
+}
+
+.pending,
+.low {
+  background: #fff5d8;
+  color: #86610f;
+}
+
+.missing {
+  background: #eef0f1;
+  color: #667076;
+}
+
+.detail-panel {
+  min-height: 650px;
+  padding: 18px;
+}
+
+.detail-panel.excel-panel {
+  overflow: hidden;
+}
+
+.student-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.student-header p:last-child {
+  color: #617067;
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+
+.detail-toolbar {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin: 18px 0 12px;
+}
+
+.type-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.type-toggles label {
+  align-items: center;
+  border: 1px solid #cbd6cc;
+  border-radius: 8px;
+  display: inline-flex;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 10px;
+}
+
+.criteria-count {
+  color: #617067;
+  font-weight: 700;
+}
+
+.criteria-table {
+  border: 1px solid #d9e1d7;
+  border-radius: 8px;
+  overflow: auto;
+}
+
+.criteria-head,
+.criteria-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 70px 100px minmax(330px, 1fr) 110px 110px 120px;
+  min-width: 930px;
+  padding: 11px 14px;
+}
+
+.criteria-head {
+  background: #eef3ed;
+  color: #536158;
+  font-size: 0.78rem;
+  font-weight: 900;
+  position: sticky;
+  top: 0;
+  text-transform: uppercase;
+}
+
+.criteria-row {
+  align-items: center;
+  border-top: 1px solid #e5ebe4;
+}
+
+.title-cell {
+  line-height: 1.35;
+}
+
+.empty-state {
+  align-items: center;
+  color: #617067;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 520px;
+  justify-content: center;
+}
+
+.excel-header {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.excel-header > span {
+  color: #617067;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.excel-grid {
+  border: 1px solid #d1dcd0;
+  border-radius: 8px;
+  max-height: calc(100vh - 330px);
+  min-height: 520px;
+  overflow: auto;
+}
+
+.excel-group-row {
+  align-items: stretch;
+  background: #f8faf7;
+  border-bottom: 1px solid #d1dcd0;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(260px, 1fr) repeat(3, minmax(160px, 220px));
+  min-width: 820px;
+  padding: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 8;
+}
+
+.excel-group-spacer {
+  align-items: center;
+  color: #5c6b61;
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 900;
+  padding: 0 8px;
+  text-transform: uppercase;
+}
+
+.group-toggle {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #17211b;
+  display: inline-flex;
+  gap: 8px;
+  justify-content: center;
+  min-height: 38px;
+  padding: 0 12px;
+}
+
+.group-toggle strong {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.75rem;
+  justify-content: center;
+  min-width: 28px;
+  padding: 2px 7px;
+}
+
+.group-toggle.collapsed {
+  filter: saturate(0.85);
+  opacity: 0.72;
+}
+
+.group-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.group-required {
+  background: #e7f3e9;
+  border-color: #bdd8c2;
+}
+
+.group-other {
+  background: #fff4c7;
+  border-color: #ead47b;
+}
+
+.group-test {
+  background: #e5f0ff;
+  border-color: #bed3f2;
+}
+
+.excel-row {
+  display: grid;
+  grid-template-columns: 260px 132px 96px 82px repeat(var(--criteria-columns), 128px);
+  min-width: max-content;
+}
+
+.excel-head {
+  background: #eef3ed;
+  color: #3f4e44;
+  font-size: 0.76rem;
+  font-weight: 900;
+  position: sticky;
+  top: 55px;
+  z-index: 5;
+}
+
+.excel-data-row {
+  background: white;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.excel-data-row:hover .excel-cell,
+.excel-data-row:focus-visible .excel-cell {
+  background: #f7faf5;
+}
+
+.excel-data-row:focus-visible {
+  outline: 2px solid #356d49;
+  outline-offset: -2px;
+}
+
+.excel-cell {
+  align-items: center;
+  border-bottom: 1px solid #e1e8df;
+  border-right: 1px solid #e1e8df;
+  display: flex;
+  min-height: 54px;
+  overflow: hidden;
+  padding: 8px 10px;
+}
+
+.sticky-name {
+  background: inherit;
+  left: 0;
+  position: sticky;
+  z-index: 4;
+}
+
+.excel-head .sticky-name {
+  background: #eef3ed;
+  z-index: 6;
+}
+
+.student-name-cell,
+.criterion-column,
+.score-cell {
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.student-name-cell strong,
+.criterion-column span,
+.score-cell span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.student-name-cell span {
+  color: #617067;
+  font-size: 0.76rem;
+  margin-top: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.summary-cell {
+  justify-content: center;
+  text-align: center;
+}
+
+.summary-score-cell {
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-score-cell strong {
+  font-size: 0.95rem;
+}
+
+.summary-score-cell span {
+  color: #5c6a61;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.sortable-header {
+  color: #3f4e44;
+  gap: 5px;
+  font-weight: 900;
+}
+
+.sortable-header.active {
+  background: #dce8db;
+  color: #17211b;
+}
+
+.sortable-header:hover {
+  background: #e5eee3;
+}
+
+.criterion-column {
+  min-height: 96px;
+}
+
+.collapsed-column {
+  border: 0;
+  color: #17211b;
+  cursor: pointer;
+  gap: 5px;
+  text-align: center;
+}
+
+.collapsed-column:hover {
+  filter: brightness(0.98);
+}
+
+.criterion-column strong {
+  color: #203b2b;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.criterion-column span {
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  display: -webkit-box;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.score-cell {
+  gap: 3px;
+  justify-content: center;
+}
+
+.collapsed-score {
+  filter: saturate(0.9);
+}
+
+.score-cell strong {
+  font-size: 0.96rem;
+}
+
+.score-cell span {
+  color: #5c6a61;
+  font-size: 0.74rem;
+}
+
+.criterion-column.tone-required {
+  background: #e7f3e9;
+}
+
+.criterion-column.tone-other {
+  background: #fff4c7;
+}
+
+.criterion-column.tone-test {
+  background: #e5f0ff;
+}
+
+.score-cell.tone-required.pass {
+  background: #ecf7ed;
+}
+
+.score-cell.tone-required.fail {
+  background: #fff6df;
+}
+
+.score-cell.tone-other.pass {
+  background: #fff8dc;
+}
+
+.score-cell.tone-other.fail {
+  background: #fff0b5;
+}
+
+.score-cell.tone-test.pass {
+  background: #edf5ff;
+}
+
+.score-cell.tone-test.fail {
+  background: #dcecff;
+}
+
+.score-cell.empty {
+  background: #f4f6f6;
+  color: #707b80;
+}
+
+@media (max-width: 1000px) {
+  .controls-row {
+    grid-template-columns: 1fr;
+  }
+
+  .view-switch {
+    width: fit-content;
+  }
+
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace.excel-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .student-panel {
+    max-height: 420px;
+  }
+}
+
+@media (max-width: 720px) {
+  .app-shell {
+    padding: 14px;
+  }
+
+  .topbar,
+  .student-header,
+  .detail-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .metrics-grid,
+  .progress-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 460px) {
+  .metrics-grid,
+  .progress-strip {
+    grid-template-columns: 1fr;
+  }
+}
