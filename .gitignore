@@ -84,6 +84,11 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
+
+# This repo is published from GitHub Pages root, so keep this built static app.
+!aws-academy-tracker/dist/
+!aws-academy-tracker/dist/assets/
+!aws-academy-tracker/dist/**
 .output
 
 # Gatsby files
