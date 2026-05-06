@@ -5,8 +5,21 @@ export const EXCLUDED_STUDENTS = new Set([
   "ALBERTO, MONZON NICOLAS",
   "Marquez, Mariano Andrade",
   "Ergas, Neyen",
+  "Francisco Isola",
+  "Isola, Francisco",
   "Student, Test"
 ]);
+
+const EXCLUDED_STUDENT_EMAILS = new Set([
+  "franciscoisola1@gmail.com"
+]);
+
+function isExcludedStudent(student) {
+  const studentName = student.Student?.trim();
+  const studentEmail = student["SIS Login ID"]?.trim().toLowerCase();
+
+  return EXCLUDED_STUDENTS.has(studentName) || EXCLUDED_STUDENT_EMAILS.has(studentEmail);
+}
 
 function scorePercent(rawScore, possiblePoints) {
   if (rawScore === null || possiblePoints === null || possiblePoints <= 0) {
@@ -39,7 +52,7 @@ function resultForCriterion(student, criterion, pointsByTitle) {
 }
 
 export function buildStudentTrackers(students, pointsByTitle) {
-  return students.filter((student) => !EXCLUDED_STUDENTS.has(student.Student?.trim())).map((student) => {
+  return students.filter((student) => !isExcludedStudent(student)).map((student) => {
     const items = criteria.map((criterion) => resultForCriterion(student, criterion, pointsByTitle));
     const requiredItems = items.filter((item) => item.countsForApproval);
     const extraPointItems = items.filter((item) => item.countsForExtraPoint);

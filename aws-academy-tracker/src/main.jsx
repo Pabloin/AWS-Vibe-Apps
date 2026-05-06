@@ -51,10 +51,13 @@ const exportPalette = {
   fixed: { background: "#F4F7F4", color: "#17211B" },
   score: { background: "#F2F4F5", color: "#17211B" },
   required: { background: "#E7F3E9", color: "#203B2B" },
+  requiredBlockTwo: { background: "#CFE4D1", color: "#173821" },
   challenge: { background: "#FFF4C7", color: "#203B2B" },
   test: { background: "#E5F0FF", color: "#203B2B" },
   pending: { background: "#FDE2E2", color: "#6E1F1F" }
 };
+
+const blockTwoRequiredModules = new Set(["M10", "M11", "M12", "M13", "M14", "M15", "M16"]);
 
 function exportStyle(...styles) {
   return styles.filter(Boolean).join("");
@@ -84,6 +87,9 @@ function exportToneForItem(item) {
     return { className: "export-test", ...exportPalette.test };
   }
   if (item.required === "Required") {
+    if (isBlockTwoRequiredItem(item)) {
+      return { className: "export-required-block-two", ...exportPalette.requiredBlockTwo };
+    }
     return { className: "export-required", ...exportPalette.required };
   }
   return { className: "export-challenge", ...exportPalette.challenge };
@@ -630,7 +636,7 @@ function App() {
 }
 
 function ExcelView({ trackers, selectedTypes, onSelectStudent }) {
-  const [sortConfig, setSortConfig] = useState({ key: "required", direction: "desc" });
+  const [sortConfig, setSortConfig] = useState({ key: "combined", direction: "desc" });
   const [collapsedGroups, setCollapsedGroups] = useState({
     required: false,
     extra: false,
@@ -675,19 +681,26 @@ function ExcelView({ trackers, selectedTypes, onSelectStudent }) {
 
     return displayColumns;
   }, [availableColumns, collapsedGroups, groupCounts]);
+  const blockColumns = useMemo(() => buildBlockColumns(columns), [columns]);
   const sortedTrackers = useMemo(() => {
-    const scoreKey = sortConfig.key === "extra" ? "completedExtra" : "completedRequired";
-    const totalKey = sortConfig.key === "extra" ? "extraTotal" : "requiredTotal";
     const direction = sortConfig.direction === "asc" ? 1 : -1;
 
     return [...trackers].sort((left, right) => {
-      const leftRatio = left[totalKey] ? left[scoreKey] / left[totalKey] : 0;
-      const rightRatio = right[totalKey] ? right[scoreKey] / right[totalKey] : 0;
-      const ratioDiff = leftRatio - rightRatio;
-      const countDiff = left[scoreKey] - right[scoreKey];
-      const nameDiff = left.name.localeCompare(right.name);
+      if (sortConfig.key === "combined") {
+        return (
+          compareTrackerScore(left, right, "completedRequired", "requiredTotal", direction) ||
+          compareTrackerScore(left, right, "completedExtra", "extraTotal", direction) ||
+          left.name.localeCompare(right.name)
+        );
+      }
 
-      return (ratioDiff || countDiff || nameDiff) * direction;
+      const scoreKey = sortConfig.key === "extra" ? "completedExtra" : "completedRequired";
+      const totalKey = sortConfig.key === "extra" ? "extraTotal" : "requiredTotal";
+
+      return (
+        compareTrackerScore(left, right, scoreKey, totalKey, direction) ||
+        left.name.localeCompare(right.name)
+      );
     });
   }, [sortConfig, trackers]);
 
@@ -752,6 +765,28 @@ function ExcelView({ trackers, selectedTypes, onSelectStudent }) {
             tone="test"
             onClick={() => toggleGroup("test")}
           />
+          <CombinedSortButton
+            active={sortConfig.key === "combined"}
+            direction={sortConfig.direction}
+            onClick={() => toggleSort("combined")}
+          />
+        </div>
+        <div className="excel-row excel-block-row" role="row">
+          <div className="excel-cell sticky-name block-spacer" aria-hidden="true" />
+          <div className="excel-cell block-spacer" aria-hidden="true" />
+          <div className="excel-cell block-spacer" aria-hidden="true" />
+          <div className="excel-cell block-spacer" aria-hidden="true" />
+          {blockColumns.map((block, index) => (
+            <div
+              className={`excel-cell block-label ${block.key ? `block-${block.key}` : "block-empty"}`}
+              role="columnheader"
+              aria-label={block.label || "No block"}
+              key={`${block.key || "empty"}-${index}`}
+              style={{ gridColumn: `span ${block.columnCount}` }}
+            >
+              {block.label}
+            </div>
+          ))}
         </div>
         <div className="excel-row excel-head" role="row">
           <div className="excel-cell sticky-name" role="columnheader">
@@ -882,9 +917,67 @@ function toneClassForItem(item) {
     return "tone-test";
   }
   if (item.required === "Required") {
+    if (isBlockTwoRequiredItem(item)) {
+      return "tone-required-block-two";
+    }
     return "tone-required";
   }
   return "tone-other";
+}
+
+function isBlockTwoRequiredItem(item) {
+  return item.required === "Required" && (blockTwoRequiredModules.has(item.module) || item.module === "M04");
+}
+
+function blockKeyForColumn(column) {
+  if (column.kind !== "criterion") {
+    return "";
+  }
+  if (column.item.type === "Test") {
+    return "four";
+  }
+  if (column.item.required === "Extra Point") {
+    return "three";
+  }
+  if (column.item.required === "Required") {
+    return isBlockTwoRequiredItem(column.item) ? "two" : "one";
+  }
+  return "";
+}
+
+function buildBlockColumns(columns) {
+  const labels = {
+    one: "Bloque I (deadline 14/5)",
+    two: "Bloque II (deadline end of semester)",
+    three: "Bloque III - Challenge Labs with Extra Point",
+    four: "Bloque IV - Multiple Choice Questions"
+  };
+
+  return columns.reduce((blocks, column) => {
+    const key = blockKeyForColumn(column);
+    const previousBlock = blocks[blocks.length - 1];
+
+    if (previousBlock?.key === key) {
+      previousBlock.columnCount += 1;
+      return blocks;
+    }
+
+    blocks.push({
+      key,
+      label: labels[key] || "",
+      columnCount: 1
+    });
+    return blocks;
+  }, []);
+}
+
+function compareTrackerScore(left, right, scoreKey, totalKey, direction) {
+  const leftRatio = left[totalKey] ? left[scoreKey] / left[totalKey] : 0;
+  const rightRatio = right[totalKey] ? right[scoreKey] / right[totalKey] : 0;
+  const ratioDiff = leftRatio - rightRatio;
+  const countDiff = left[scoreKey] - right[scoreKey];
+
+  return (ratioDiff || countDiff) * direction;
 }
 
 function groupKeyForItem(item) {
@@ -918,6 +1011,22 @@ function GroupToggle({ collapsed, count, label, tone, onClick }) {
       <Icon size={16} />
       <span>{label}</span>
       <strong>{count}</strong>
+    </button>
+  );
+}
+
+function CombinedSortButton({ active, direction, onClick }) {
+  const Icon = direction === "asc" ? ArrowUpNarrowWide : ArrowDownWideNarrow;
+  return (
+    <button
+      className={`combined-sort-button ${active ? "active" : ""}`}
+      type="button"
+      onClick={onClick}
+      title="Sort students by Required, then Extra"
+    >
+      <Icon size={16} />
+      <span>Sort</span>
+      <strong>Required + Extra</strong>
     </button>
   );
 }
