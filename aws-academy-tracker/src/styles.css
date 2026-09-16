@@ -30,6 +30,29 @@ button {
   padding: 24px;
 }
 
+.app-footer {
+  align-items: center;
+  border-top: 1px solid #d9e1d7;
+  color: #617067;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.78rem;
+  gap: 8px;
+  margin: 26px auto 0;
+  max-width: 1480px;
+  padding: 16px 2px 0;
+}
+
+.app-footer strong {
+  color: #314438;
+}
+
+.app-footer span + span::before {
+  color: #a1ada5;
+  content: "•";
+  margin-right: 8px;
+}
+
 .topbar {
   align-items: center;
   display: flex;
@@ -877,6 +900,17 @@ h2 {
 
   h1 {
     font-size: 2rem;
+  }
+
+  .app-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .app-footer span + span::before {
+    content: none;
+    margin: 0;
   }
 }
 

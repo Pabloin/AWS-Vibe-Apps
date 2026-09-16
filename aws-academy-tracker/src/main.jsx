@@ -24,6 +24,8 @@ const viewModes = [
   { id: "detail", label: "Detail", icon: ListChecks },
   { id: "excel", label: "Excel", icon: Table2 }
 ];
+const RELEASE_VERSION = "v0.1.1";
+const RELEASE_DATE = "Updated Sep 16, 2026";
 
 function formatPercent(value) {
   if (value === null || value === undefined || Number.isNaN(value)) {
@@ -631,6 +633,12 @@ function App() {
           )}
         </section>
       </section>
+
+      <footer className="app-footer">
+        <strong>AWS Academy Tracker</strong>
+        <span>{RELEASE_VERSION}</span>
+        <span>{RELEASE_DATE}</span>
+      </footer>
     </main>
   );
 }
