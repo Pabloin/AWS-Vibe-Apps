@@ -43,6 +43,9 @@ export function normalizeTitle(value) {
   return value
     .replace(/^\s+|\s+$/g, "")
     .replace(/\s+/g, " ")
+    // AWS Academy generates a new platform ID for the same activity in each
+    // course export. It is metadata, not part of the activity's identity.
+    .replace(/\s*\(\d+\)\s*$/, "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
